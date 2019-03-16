@@ -1,51 +1,6 @@
                 section         .text
 
                 global          _start
-
-
- ;r11 -- char
-    print_char:
-        push r11
-        mov [rsp], r11
-        mov rax, 1
-        mov rdi, 1
-        mov rsi, rsp
-        mov rdx, 1
-        syscall
-        pop r11
-        ret
-
-    print_number:
-        cmp rax, 0
-        jge parse
-            mov r11, 45
-            mov rbp, rax
-            call print_char
-            mov rax, rbp
-            neg rax
-        parse:
-        push -1
-        loop1:      
-          xor rdx, rdx
-          mov rcx, 10
-          div rcx
-          mov rbx, rdx
-          push rbx
-          cmp rax, 0
-          jne loop1
-        loop2:
-          pop rbx
-          cmp rbx, -1
-          je end
-              add rbx, 48
-              mov r11, rbx
-              call print_char
-          jmp loop2 
-        end:
-        mov r11, 10
-        call print_char
-        ret
-
 _start:
 
                 sub             rsp, 2 * 128 * 8
@@ -55,8 +10,8 @@ _start:
                 mov             rdi, rsp
                 call            read_long
                 lea             rsi, [rsp + 128 * 8]
-
-                call            add_long_long
+                call            swap_arguments
+                call            sub_long_long
 
                 call            write_long
 
@@ -65,13 +20,21 @@ _start:
 
                 jmp             exit
 
-; adds two long number
-;    rdi -- address of summand #1 (long number)
-;    rsi -- address of summand #2 (long number)
+swap_arguments:
+                push rbp
+                mov rbp, rdi
+                mov rdi, rsi
+                mov rsi, rbp
+                pop rbp
+                ret
+
+; subtract two long number
+;    rdi -- address of #1 (long number)
+;    rsi -- address of #2 (long number)
 ;    rcx -- length of long numbers in qwords
 ; result:
-;    sum is written to rdi
-add_long_long:
+;    is written to rdi
+sub_long_long:
                 push            rdi
                 push            rsi
                 push            rcx
@@ -80,7 +43,7 @@ add_long_long:
 .loop:
                 mov             rax, [rsi]
                 lea             rsi, [rsi + 8]
-                adc             [rdi], rax
+                sbb             [rdi], rax
                 lea             rdi, [rdi + 8]
                 dec             rcx
                 jnz             .loop

@@ -1,0 +1,3 @@
+/home/timfame/cpp-course/asmWithC/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/timfame/cpp-course/asmWithC/cmake-build-debug/CMakeFiles/asmWithC.dir
+/home/timfame/cpp-course/asmWithC/cmake-build-debug/CMakeFiles/edit_cache.dir

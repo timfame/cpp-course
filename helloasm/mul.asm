@@ -2,7 +2,6 @@
 
                 global          _start
 
-
  ;r11 -- char
     print_char:
         push r11
@@ -48,22 +47,159 @@
 
 _start:
 
-                sub             rsp, 2 * 128 * 8
-                lea             rdi, [rsp + 128 * 8]
-                mov             rcx, 128
+                sub             rsp, 8 * 128 * 8
+                lea             rdi, [rsp + 2 * 128 * 8]
+                mov             rcx, 3
                 call            read_long
                 mov             rdi, rsp
                 call            read_long
-                lea             rsi, [rsp + 128 * 8]
+                lea             rsi, [rsp + 2 * 128 * 8]
 
-                call            add_long_long
+                lea             r9, [rsp + 6 * 128 * 8]
+                call            set_zero_result
+                lea             r9, [rsp + 6 * 128 * 8]
 
+                lea             r10, [rsp + 4 * 128 * 8]
+                call            copy_array_save
+                lea             r10, [rsp + 4 * 128 * 8]
+
+                call            mul_long_long
+                call            swap_result
                 call            write_long
 
                 mov             al, 0x0a
                 call            write_char
 
                 jmp             exit
+
+set_zero_result:
+                push            rbp
+                push            rax
+                mov             rbp, 256
+
+.loop:
+                xor             rax, rax
+                mov             [r9], rax
+                lea             r9, [r9 + 8]
+                dec             rbp
+                jnz             .loop
+
+                pop             rax
+                pop             rbp
+                ret
+
+
+copy_array_result:
+                push            rbp
+                push            rcx
+                push            rax
+                mov             rbp, rdi
+.loop:
+                mov             rax, [rbp]
+                mov             [r9], rax
+                lea             rbp, [rbp + 8]
+                lea             r9, [r9 + 8]
+                dec             rcx
+                jnz             .loop
+
+                pop             rax
+                pop             rcx
+                pop             rbp
+                ret
+
+copy_array_save:
+                push            rbp
+                push            rcx
+                push            rax
+                mov             rbp, rdi
+.loop:
+                mov             rax, [rbp]
+                mov             [r10], rax
+                lea             rbp, [rbp + 8]
+                lea             r10, [r10 + 8]
+                dec             rcx
+                jnz             .loop
+
+                pop             rax
+                pop             rcx
+                pop             rbp
+                ret
+
+;swaps rdi and r9
+swap_result:
+                push            rbp
+                mov             rbp, rdi
+                mov             rdi, r9
+                mov             r9, rbp
+                pop             rbp
+                ret
+
+;swaps rdi and r10
+swap_save:
+                push            rbp
+                mov             rbp, rdi
+                mov             rdi, r10
+                mov             r10, rbp
+                pop             rbp
+                ret
+
+; multiply two long number
+;    rdi -- address of #1 (long number)
+;    rsi -- address of #2 (long number)
+;    rcx -- length of long numbers in qwords
+; result:
+;    is written to rdi
+mul_long_long:
+                push            rdi
+                push            rsi
+                push            rcx
+                push            rbx
+
+                clc
+                mov             rbp, 0
+.loop:
+                mov             rbx, [rsi]
+                lea             rsi, [rsi + 8]
+
+               ; cmp rbp, 0
+               ; jne .need
+               ; call swap_result
+               ; mov [rdi], rbx
+               ; call write_long
+               ; .need:
+
+                call            mul_long_short ; rdi = cur_mul
+                call write_long
+                call            swap_save ; r10 = cur_mul rdi = start
+
+                mov r11, rbp
+.pow:
+                cmp             r11, 0
+                je              .finish_pow
+                dec             r11
+                mov             rbx, 10
+                call            swap_save
+                call            mul_long_short
+                call            swap_save
+                jmp             .pow
+.finish_pow:          
+                mov             rsi, r10 ; rsi = cur_mul
+
+                call            swap_result ; rdi = result, r9 = start
+                call            add_long_long ; rdi = sum
+                call            swap_result ; rdi = start, r9 = result
+
+                call            copy_array_save; r10 = rdi = start
+                lea             rdi, [rdi + 8]
+                inc             rbp
+                dec             rcx
+                jnz             .loop
+
+                pop             rbx
+                pop             rcx
+                pop             rsi
+                pop             rdi
+                ret
 
 ; adds two long number
 ;    rdi -- address of summand #1 (long number)
