@@ -1,0 +1,6 @@
+/home/timfame/cpp-course/helloasm/CMakeFiles/rebuild_cache.dir
+/home/timfame/cpp-course/helloasm/CMakeFiles/mul.dir
+/home/timfame/cpp-course/helloasm/CMakeFiles/sub.dir
+/home/timfame/cpp-course/helloasm/CMakeFiles/edit_cache.dir
+/home/timfame/cpp-course/helloasm/CMakeFiles/wordnumber.dir
+/home/timfame/cpp-course/helloasm/CMakeFiles/add.dir
