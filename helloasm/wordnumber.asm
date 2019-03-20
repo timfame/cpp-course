@@ -7,7 +7,6 @@ digit: dw ""
     ;r11 -- char
     print_char:
         push r11
-        mov [rsp], r11
         mov rax, 1
         mov rdi, 1
         mov rsi, rsp
@@ -67,6 +66,9 @@ _start:
 	jl _sys_exit
 	mov r8, rax
 
+
+; r9 == 1 if last character was not space
+; rbx == answer
 	xor rbx, rbx
   xor r9, r9
 	read:
@@ -78,11 +80,11 @@ _start:
 		cmp rax, 0
 		je end_program	
 
-        cmp [file], word 9
+        cmp [file], byte 9
         jl not_space
-        cmp [file], word 32
+        cmp [file], byte 32
         je inc_ans
-        cmp [file], word 13
+        cmp [file], byte 13
         jg not_space
         inc_ans:
             cmp r9, 0
