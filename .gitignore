@@ -8,3 +8,4 @@ helloasm/*
 !helloasm/sub.asm
 !helloasm/wordnumber.asm
 !helloasm/printnumber.asm
+.gitignore
