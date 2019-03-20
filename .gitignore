@@ -1,7 +1,4 @@
-/asmWithC/*
-/bigint/*
-/cpp/*
-/helloasm/*
+*
 !/cpp/main.cpp
 !/helloasm/add.asm
 !/helloasm/mul.asm
