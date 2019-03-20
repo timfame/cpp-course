@@ -1,0 +1,10 @@
+bigint/
+asmWithC/
+cpp/*
+helloasm/*
+!cpp/main.cpp
+!helloasm/add.asm
+!helloasm/mul.asm
+!helloasm/sub.asm
+!helloasm/wordnumber.asm
+!helloasm/printnumber.asm
