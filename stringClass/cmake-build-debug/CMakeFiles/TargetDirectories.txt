@@ -1,0 +1,3 @@
+/home/timfame/cpp-course/stringClass/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/timfame/cpp-course/stringClass/cmake-build-debug/CMakeFiles/stringClass.dir
+/home/timfame/cpp-course/stringClass/cmake-build-debug/CMakeFiles/edit_cache.dir
