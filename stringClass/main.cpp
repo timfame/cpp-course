@@ -106,7 +106,7 @@ struct string {
     }
 
     void append(char const * new_str) {
-        size_t len= strlen(new_str);
+        size_t len = strlen(new_str);
         ensure_capacity(len);
         for (size_t i = 0; i < len; i++)
             str[i + _size] = new_str[i];
@@ -150,14 +150,17 @@ struct string {
         return _size == 0;
     }
 
-    void print() {
-        for (size_t i = 0; i < _size; i++)
-            std::cout << str[i];
+
+    friend std::ostream & operator <<(std::ostream & out, const string & new_str) {
+        out << new_str.str;
+        return out;
     }
 
-    void println() {
-        print();
-        std::cout << "\n";
+    friend std::istream & operator >>(std::istream & in, string & new_str) {
+        in >> new_str.str;
+        new_str._size = strlen(new_str.str);
+        new_str.capacity = new_str._size * 2 + 1;
+        return in;
     }
 
 private:
@@ -182,6 +185,15 @@ private:
 };
 
 int main() {
-
+    string a ;
+    string s;
+    std::cin >> s;
+    std::cin >> a;
+    s += 'a';
+    a += 'b';
+    std::cout << s << "\n";
+    std::cout << a << "\n";
+    s.append(a);
+    std::cout << s << "\n";
     return 0;
 }
