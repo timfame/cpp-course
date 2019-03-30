@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/stringClass.dir/main.cpp.o  -o stringClass 
