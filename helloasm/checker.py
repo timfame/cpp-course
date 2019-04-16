@@ -30,7 +30,7 @@ def main():
             print('\n\n\n\n\n')
             print(run_solve(a, b))
             exit(0)
-        print(str(tests_num) + ' passed.')
+        print(str(tests_num) + ' passed. : ' + str(a) + ' * ' + str(b))
 
 
 if __name__ == '__main__':

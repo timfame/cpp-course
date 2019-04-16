@@ -163,6 +163,10 @@ struct string {
         return in;
     }
 
+    ~string() {
+        free(str);
+    }
+
 private:
     size_t _size;
     size_t capacity = 0;

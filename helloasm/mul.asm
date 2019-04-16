@@ -4,7 +4,7 @@
 
 _start:
 
-                sub             rsp, 520 * 8
+                sub             rsp, 4 * 128 * 8
 
                 mov             rbp, rsp
 
@@ -19,10 +19,10 @@ _start:
 
                 call            mul_long_long
                 mov             rdi, rbp
-                add             rdi, 2 * 128 * 8
+                lea             rdi, [rdi + 2 * 128 * 8]
                 call            write_long
 
-                mov             al, 0x0a
+                mov             rax, 0x0a
                 call            write_char
 
                 jmp             exit
@@ -33,7 +33,7 @@ set_zero_result:
                 push            r8
 
                 mov             rax, rbp
-                mov             rdx, 128
+                mov             rdx, 512
                 mov             r8, 0
 .loop:
                 mov             [rax], r8
@@ -52,6 +52,11 @@ set_zero_result:
 ;    rcx -- length of long numbers in qwords
 ; result:
 ;    is written to rdi
+; r8 -- position in first number
+; r9 -- position in second number
+; r10 -- position in result
+; r11 -- digit in first number
+; r12 -- digit in second number
 mul_long_long:
                 push            rdi
                 push            rsi
@@ -61,18 +66,18 @@ mul_long_long:
 .loop1:
                 mov             r9, 0
                 xor             rsi, rsi
-
+                mov             r10, r8
+                mov             r11, [rbp + r8 * 8]
         .loop2:
-                mov             r11, r8
-                add             r11, r9
-                mov             rax, [rbp + r8 * 8]
-                mov             r10, [rbp + r9 * 8 + 128 * 8]
-                mul             r10
+                mov             rax, r11
+                mov             r12, [rbp + r9 * 8 + 128 * 8]
+                mul             r12
                 add             rax, rsi
                 adc             rdx, 0
-                add             [rbp + r11 * 8 + 256 * 8], rax
+                add             [rbp + r10 * 8 + 256 * 8], rax
                 adc             rdx, 0
                 mov             rsi, rdx
+                inc             r10
                 inc             r9
                 cmp             r9, 128
                 jl             .loop2

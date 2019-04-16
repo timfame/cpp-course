@@ -25,7 +25,7 @@ digit: dw ""
             neg rax
         parse:
         push -1
-        loop1:      
+        loop1:
           xor rdx, rdx
           mov rcx, 10
           div rcx
@@ -40,15 +40,15 @@ digit: dw ""
               add rbx, 48
               mov r11, rbx
               call print_char
-          jmp loop2 
+          jmp loop2
         end:
         mov r11, 10
         call print_char
         ret
 
     _sys_exit:
-    	mov rax, 1
-    	xor rbx, rbx
+    	mov rax, 60
+        mov rdi, 1
     	syscall
     	ret
 
@@ -78,7 +78,7 @@ _start:
 		mov rdx, 1
 		syscall
 		cmp rax, 0
-		je end_program	
+		je end_program
 
         cmp [file], byte 9
         jl not_space
