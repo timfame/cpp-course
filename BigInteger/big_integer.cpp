@@ -15,7 +15,7 @@ big_integer:: big_integer() {
 big_integer:: big_integer(int new_val) {
     negate = new_val < 0;
     if (new_val == static_cast<int>(-(BIT_MAX / 2))) {
-        data = {BIT_MAX / 2};
+        data = {bit_cast(BIT_MAX / 2)};
     } else {
         data = {static_cast<bit>(::abs(new_val))};
     }
@@ -49,9 +49,7 @@ big_integer:: ~big_integer() {
 }
 
 big_integer& big_integer:: operator = (big_integer const& other) {
-    if (*this != other) {
-        big_integer(other).swap(*this);
-    }
+    big_integer(other).swap(*this);
     return *this;
 }
 
@@ -161,10 +159,7 @@ big_integer& big_integer:: operator /=(big_integer const& other) {
     if (*this < divisor) {
         return *this = 0;
     }
-    if (*this < 2 * divisor) {
-        return *this = (negate ? -1 : 1);
-    }
-    bit normalize_value = BIT_MAX / long_cast(divisor.data.back() + 1);
+    bit normalize_value = bit_cast(BIT_MAX / long_cast(divisor.data.back() + 1));
     *this *= normalize_value;
     divisor *= normalize_value;
     size_t m = data.size(), n = divisor.data.size();
@@ -188,9 +183,6 @@ big_integer& big_integer:: operator /=(big_integer const& other) {
         while (*this < 0) {
             quotient[i]--;
             *this += divisor;
-        }
-        if (*this == ZERO) {
-            break;
         }
     }
     data = quotient;

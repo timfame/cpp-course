@@ -15,7 +15,6 @@ typedef long long sign_bit;
 
 const bit BIT_SIZE = 32;
 const long_bit BIT_MAX = 1ll << 32;
-const bit LONG_BIT_SIZE = 64;
 
 struct big_integer {
 
