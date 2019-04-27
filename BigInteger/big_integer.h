@@ -36,8 +36,14 @@ struct big_integer {
     big_integer& operator +=(big_integer const& other);
     big_integer& operator -=(big_integer const& other);
     big_integer& operator *=(big_integer const& other);
+    big_integer& operator *=(bit other);
+    big_integer& operator *=(int other);
     big_integer& operator /=(big_integer const& other);
+    big_integer& operator /=(bit other);
+    big_integer& operator /=(int other);
     big_integer& operator %=(big_integer const& other);
+    bit operator %=(bit other);
+    int operator %=(int other);
 
     big_integer& operator &=(big_integer const& other);
     big_integer& operator |=(big_integer const& other);
@@ -57,8 +63,8 @@ struct big_integer {
     friend bool operator ==(big_integer const& a, big_integer const& b);
     friend bool operator >(big_integer const& a, big_integer const& b);
 
-    big_integer div(bit other);
-    bit mod(bit other);
+   // big_integer div(bit other);
+   // bit mod(bit other);
     std::string to_string() const;
     big_integer abs() const;
     big_integer min(big_integer const& other) const;
@@ -72,8 +78,6 @@ private:
     big_integer& bitwise_operation(big_integer const& other, T foo);
 
     void swap(big_integer& b);
-    bit normalize();
-    big_integer pow_base(int i) const;
 
     bit bit_cast(long_bit x) const;
     long_bit long_cast(bit x) const;
@@ -90,8 +94,14 @@ private:
 big_integer operator +(big_integer const& a, big_integer const& b);
 big_integer operator -(big_integer const& a, big_integer const& b);
 big_integer operator *(big_integer const& a, big_integer const& b);
+big_integer operator *(big_integer const& a, bit other);
+big_integer operator *(big_integer const& a, int other);
 big_integer operator /(big_integer const& a, big_integer const& b);
+big_integer operator /(big_integer const& a, bit other);
+big_integer operator /(big_integer const& a, int other);
 big_integer operator %(big_integer const& a, big_integer const& b);
+bit operator %(big_integer const& a, bit b);
+int operator %(big_integer const& a, int b);
 
 big_integer operator &(big_integer const& a, big_integer const& b);
 big_integer operator |(big_integer const& a, big_integer const& b);

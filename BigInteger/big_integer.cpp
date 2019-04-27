@@ -107,33 +107,57 @@ big_integer& big_integer:: operator *=(big_integer const& other) {
     return *this;
 }
 
-big_integer big_integer:: div(bit other) {
-    big_integer res(*this);
+big_integer& big_integer:: operator *=(bit other) {
     bit carry = 0;
-    size_t i = res.data.size();
-    while (i > 0) {
-        i--;
-        long_bit cur = long_cast(carry) * BIT_MAX + res.data[i];
-        res.data[i] = bit_cast(cur / other);
-        carry = bit_cast(cur % other);
+    for (size_t i = 0; i < data.size() || carry; i++) {
+        if (i == data.size()) {
+            data.push_back(0);
+        }
+        long_bit cur = long_cast(data[i]) * other + carry;
+        data[i] = bit_cast(cur % BIT_MAX);
+        carry = bit_cast(cur / BIT_MAX);
     }
-    res.check_invariant();
-    return res;
+    check_invariant();
+    return *this;
 }
 
-bit big_integer:: mod(bit other) {
-    return (*this - this->div(other) * other).to_bit();
+big_integer& big_integer:: operator *=(int other) {
+    negate = negate != (other < 0);
+    bit multiplier = bit_cast(BIT_MAX / 2);
+    if (other != static_cast<int>(-(BIT_MAX / 2))) {
+        multiplier = static_cast<bit>(::abs(other));
+    }
+    *this *= multiplier;
+    return *this;
+}
+
+big_integer& big_integer:: operator /=(bit other) {
+    bit carry = 0;
+    size_t i = data.size();
+    while (i > 0) {
+        i--;
+        long_bit cur = long_cast(carry) * BIT_MAX + data[i];
+        data[i] = bit_cast(cur / other);
+        carry = bit_cast(cur % other);
+    }
+    check_invariant();
+    return *this;
+}
+
+big_integer& big_integer:: operator /=(int other) {
+    negate = negate != (other < 0);
+    bit divisor = bit_cast(BIT_MAX / 2);
+    if (other != static_cast<int>(-(BIT_MAX / 2))) {
+        divisor = static_cast<bit>(::abs(other));
+    }
+    *this /= divisor;
+    return *this;
 }
 
 big_integer& big_integer:: operator /=(big_integer const& other) {
     bool neg = negate != other.negate;
     big_integer divisor(other);
     divisor = ::abs(divisor), *this = ::abs(*this);
-    if (divisor.data.size() == 1) {
-        *this = this->div(divisor.to_bit());
-        negate = neg;
-        return *this;
-    }
     if (*this < divisor) {
         return *this = 0;
     }
@@ -158,7 +182,7 @@ big_integer& big_integer:: operator /=(big_integer const& other) {
         divisor >>= BIT_SIZE;
         bit first = (n + i - 1 < data.size() ? data[n + i - 1] : 0);
         bit second = (n + i < data.size() ? data[n + i] : 0);
-        big_integer cur = (first + BASE * second).div(last_bit);
+        big_integer cur = (first + BASE * second) / last_bit;
         quotient[i] = ::min(cur, BASE - 1).to_bit();
         *this -= quotient[i] * divisor;
         while (*this < 0) {
@@ -177,6 +201,19 @@ big_integer& big_integer:: operator /=(big_integer const& other) {
 
 big_integer& big_integer:: operator %=(big_integer const& other) {
     return *this -= *this / other * other;
+}
+
+bit big_integer:: operator %=(bit other) {
+    return (*this -= *this / other * other).to_bit();
+}
+
+int big_integer:: operator %=(int other) {
+    *this -= *this / other * other;
+    int res = static_cast<int>(to_bit());
+    if (negate) {
+        res = -res;
+    }
+    return res;
 }
 
 big_integer& big_integer:: operator &=(big_integer const& other) {
@@ -302,11 +339,35 @@ big_integer operator *(big_integer const& a, big_integer const& b) {
     return big_integer(a) *= b;
 }
 
+big_integer operator *(big_integer const& a, bit b) {
+    return big_integer(a) *= b;
+}
+
+big_integer operator *(big_integer const& a, int b) {
+    return big_integer(a) *= b;
+}
+
 big_integer operator /(big_integer const& a, big_integer const& b) {
     return big_integer(a) /= b;
 }
 
+big_integer operator /(big_integer const& a, bit b) {
+    return big_integer(a) /= b;
+}
+
+big_integer operator /(big_integer const& a, int b) {
+    return big_integer(a) /= b;
+}
+
 big_integer operator %(big_integer const& a, big_integer const& b) {
+    return big_integer(a) %= b;
+}
+
+bit operator %(big_integer const& a, bit b) {
+    return big_integer(a) %= b;
+}
+
+int operator %(big_integer const& a, int b) {
     return big_integer(a) %= b;
 }
 
@@ -381,14 +442,6 @@ void big_integer:: check_invariant() {
     }
 }
 
-bit big_integer:: normalize() {
-    return BIT_MAX / (long_bit)(data.back() + 1);
-}
-
-big_integer big_integer:: pow_base(int i) const {
-    return big_integer(1) << (BIT_SIZE * i);
-}
-
 void big_integer:: make_two_complement() {
     if (!negate) {
         return;
@@ -445,10 +498,10 @@ sign_bit big_integer:: sign_cast(bit x) const {
 
 std::string big_integer:: to_string() const{
     std::string res;
-    big_integer cur(*this);
+    big_integer cur(::abs(*this));
     do {
-        res += char(cur.mod(10) + 48);
-        cur = cur.div(10);
+        res += char((cur % 10) + 48);
+        cur /= 10;
     } while (::abs(cur) > 0);
     if (negate) {
         res += "-";
