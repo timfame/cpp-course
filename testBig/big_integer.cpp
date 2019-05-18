@@ -10,15 +10,15 @@ big_integer:: big_integer() : data({0}), negate(false) {}
 
 big_integer:: big_integer(int new_val) : negate(new_val < 0){
     if (new_val == static_cast<int>(-(BIT_MAX / 2))) {
-        data = bit_cast(BIT_MAX / 2);
+        data = {bit_cast(BIT_MAX / 2)};
     } else {
-        data = static_cast<unsigned>(::abs(new_val));
+        data = {static_cast<unsigned>(::abs(new_val))};
     }
 }
 
-big_integer:: big_integer(uint32_t new_val) : data(new_val), negate(false){}
+big_integer:: big_integer(unsigned new_val) : data({new_val}), negate(false){}
 
-big_integer:: big_integer(big_integer const &new_val) noexcept {
+big_integer:: big_integer(big_integer const &new_val) {
     data = new_val.data;
     negate = new_val.negate;
 }
@@ -36,7 +36,7 @@ big_integer:: big_integer(std::string const &new_val) {
     negate = value.negate;
 }
 
-big_integer& big_integer:: operator = (big_integer const& other) noexcept {
+big_integer& big_integer:: operator = (big_integer const& other) {
     big_integer(other).swap(*this);
     return *this;
 }
@@ -49,7 +49,7 @@ big_integer& big_integer:: operator +=(big_integer const& other) {
     for (size_t i = 0; i < (std::max(data.size(), other.data.size())) || carry; i++) {
         if (i == data.size())
             data.push_back(0);
-        uint64_t cur = long_cast(data[i]) + (i < other.data.size() ? other.data[i] : 0) + carry;
+        unsigned long long cur = long_cast(data[i]) + (i < other.data.size() ? other.data[i] : 0) + carry;
         data[i] = bit_cast(cur);
         carry = cur >= BIT_MAX;
     }
@@ -81,25 +81,25 @@ big_integer& big_integer:: operator *=(big_integer const& other) {
     negate = negate != other.negate;
     bit_vector res(data.size() + other.data.size(), 0);
     for (size_t i = 0; i < data.size(); i++) {
-        uint32_t carry = 0;
+        unsigned carry = 0;
         for (size_t j = 0; j < other.data.size() || carry; j++) {
-            uint64_t cur = long_cast(data[i]) * (j < other.data.size() ? other.data[j] : 0) + carry + res[i + j];
+            unsigned long long cur = long_cast(data[i]) * (j < other.data.size() ? other.data[j] : 0) + carry + res[i + j];
             res[i + j] = bit_cast(cur % BIT_MAX);
             carry = bit_cast(cur / BIT_MAX);
         }
     }
-    std::swap(data, res);
+    data = res;
     check_invariant();
     return *this;
 }
 
-big_integer& big_integer:: operator *=(uint32_t other) {
-    uint32_t carry = 0;
+big_integer& big_integer:: operator *=(unsigned other) {
+    unsigned carry = 0;
     for (size_t i = 0; i < data.size() || carry; i++) {
         if (i == data.size()) {
             data.push_back(0);
         }
-        uint64_t cur = long_cast(data[i]) * other + carry;
+        unsigned long long cur = long_cast(data[i]) * other + carry;
         data[i] = bit_cast(cur % BIT_MAX);
         carry = bit_cast(cur / BIT_MAX);
     }
@@ -109,7 +109,7 @@ big_integer& big_integer:: operator *=(uint32_t other) {
 
 big_integer& big_integer:: operator *=(int other) {
     negate = negate != (other < 0);
-    uint32_t multiplier = bit_cast(BIT_MAX / 2);
+    unsigned multiplier = bit_cast(BIT_MAX / 2);
     if (other != static_cast<int>(-(BIT_MAX / 2))) {
         multiplier = static_cast<unsigned>(::abs(other));
     }
@@ -117,12 +117,12 @@ big_integer& big_integer:: operator *=(int other) {
     return *this;
 }
 
-big_integer& big_integer:: operator /=(uint32_t other) {
-    uint32_t carry = 0;
+big_integer& big_integer:: operator /=(unsigned other) {
+    unsigned carry = 0;
     size_t i = data.size();
     while (i > 0) {
         i--;
-        uint64_t cur = long_cast(carry) * BIT_MAX + data[i];
+        unsigned long long cur = long_cast(carry) * BIT_MAX + data[i];
         data[i] = bit_cast(cur / other);
         carry = bit_cast(cur % other);
     }
@@ -132,7 +132,7 @@ big_integer& big_integer:: operator /=(uint32_t other) {
 
 big_integer& big_integer:: operator /=(int other) {
     negate = negate != (other < 0);
-    uint32_t divisor = bit_cast(BIT_MAX / 2);
+    unsigned divisor = bit_cast(BIT_MAX / 2);
     if (other != static_cast<int>(-(BIT_MAX / 2))) {
         divisor = static_cast<unsigned>(::abs(other));
     }
@@ -147,13 +147,13 @@ big_integer& big_integer:: operator /=(big_integer const& other) {
     if (*this < divisor) {
         return *this = 0;
     }
-    uint32_t normalize_value = bit_cast(BIT_MAX / long_cast(divisor.data.back() + 1));
+    unsigned normalize_value = bit_cast(BIT_MAX / long_cast(divisor.data.back() + 1));
     *this *= normalize_value;
     divisor *= normalize_value;
     size_t m = data.size(), n = divisor.data.size();
     m -= n;
     bit_vector quotient(m + 1, 0);
-    uint32_t last_bit = divisor.data.back();
+    unsigned last_unsigned = divisor.data.back();
     divisor <<= BIT_SIZE * m;
     if (*this >= divisor) {
         quotient[m] = 1;
@@ -163,9 +163,9 @@ big_integer& big_integer:: operator /=(big_integer const& other) {
     while (i > 0) {
         i--;
         divisor >>= BIT_SIZE;
-        uint32_t first = (n + i - 1 < data.size() ? data[n + i - 1] : 0);
-        uint32_t second = (n + i < data.size() ? data[n + i] : 0);
-        big_integer cur = (first + BASE * second) / last_bit;
+        unsigned first = (n + i - 1 < data.size() ? data[n + i - 1] : 0);
+        unsigned second = (n + i < data.size() ? data[n + i] : 0);
+        big_integer cur = (first + BASE * second) / last_unsigned;
         quotient[i] = ::min(cur, BASE - 1).to_bit();
         *this -= quotient[i] * divisor;
         while (*this < 0) {
@@ -173,7 +173,7 @@ big_integer& big_integer:: operator /=(big_integer const& other) {
             *this += divisor;
         }
     }
-    std::swap(data, quotient);
+    data = quotient;
     negate = neg;
     check_invariant();
     return *this;
@@ -183,7 +183,7 @@ big_integer& big_integer:: operator %=(big_integer const& other) {
     return *this -= *this / other * other;
 }
 
-uint32_t big_integer:: operator %=(uint32_t other) {
+unsigned big_integer:: operator %=(unsigned other) {
     return (*this -= *this / other * other).to_bit();
 }
 
@@ -241,7 +241,7 @@ big_integer& big_integer:: operator <<=(int other) {
         new_data[i] |= data[i - create] << shift;
         new_data[i + 1] |= (shift > 0 ? data[i - create] >> (BIT_SIZE - shift) : 0);
     }
-    std::swap(data, new_data);
+    data = new_data;
     check_invariant();
     return *this;
 }
@@ -264,7 +264,7 @@ big_integer& big_integer:: operator >>=(int other) {
         new_data[i] |= data[i + destroy] >> shift;
         new_data[i - 1] |= (shift > 0 ? data[i + destroy] << (BIT_SIZE - shift) : 0);
     }
-    std::swap(data, new_data);
+    data = new_data;
     if (negate) {
         --*this;
     }
@@ -319,7 +319,7 @@ big_integer operator *(big_integer const& a, big_integer const& b) {
     return big_integer(a) *= b;
 }
 
-big_integer operator *(big_integer const& a, uint32_t b) {
+big_integer operator *(big_integer const& a, unsigned b) {
     return big_integer(a) *= b;
 }
 
@@ -331,7 +331,7 @@ big_integer operator /(big_integer const& a, big_integer const& b) {
     return big_integer(a) /= b;
 }
 
-big_integer operator /(big_integer const& a, uint32_t b) {
+big_integer operator /(big_integer const& a, unsigned b) {
     return big_integer(a) /= b;
 }
 
@@ -343,7 +343,7 @@ big_integer operator %(big_integer const& a, big_integer const& b) {
     return big_integer(a) %= b;
 }
 
-uint32_t operator %(big_integer const& a, uint32_t b) {
+unsigned operator %(big_integer const& a, unsigned b) {
     return big_integer(a) %= b;
 }
 
@@ -458,19 +458,19 @@ big_integer min(big_integer const& a, big_integer const& b) {
     return a.min(b);
 }
 
-uint32_t big_integer:: to_bit() const {
+unsigned big_integer:: to_bit() const {
     return data[0];
 }
 
-uint32_t big_integer:: bit_cast(uint64_t x) const {
+unsigned big_integer:: bit_cast(unsigned long long x) const {
     return static_cast<unsigned>(x);
 }
 
-uint64_t big_integer:: long_cast(uint32_t x) const {
-    return static_cast<uint64_t >(x);
+unsigned long long big_integer:: long_cast(unsigned x) const {
+    return static_cast<unsigned long long>(x);
 }
 
-long long big_integer:: sign_cast(uint32_t x) const {
+long long big_integer:: sign_cast(unsigned x) const {
     return static_cast<long long>(x);
 }
 

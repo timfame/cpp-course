@@ -1,0 +1,3 @@
+/home/timfame/cpp-course/testBig/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/timfame/cpp-course/testBig/cmake-build-debug/CMakeFiles/testBig.dir
+/home/timfame/cpp-course/testBig/cmake-build-debug/CMakeFiles/edit_cache.dir
