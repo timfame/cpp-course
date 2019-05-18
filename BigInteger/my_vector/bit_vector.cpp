@@ -13,7 +13,7 @@ bit_vector::bit_vector(uint32_t new_val) : is_dynamic(false), _size(1) {
     data.statical[0] = new_val;
 }
 
-bit_vector::dynamic::dynamic(size_t s, uint32_t *a) : capacity(s), pointer(a, std::default_delete<uint32_t []>()) {}
+bit_vector::dynamic::dynamic(size_t s, uint32_t *a) : capacity(s), pointer(a, std::default_delete<uint32_t[]>()) {}
 
 bit_vector::bit_vector(bit_vector const &new_val) noexcept : is_dynamic(new_val.is_dynamic), _size(new_val._size) {
     if (is_dynamic)
@@ -29,7 +29,7 @@ bit_vector::bit_vector(size_t s, uint32_t val) : is_dynamic(s > STATIC_SIZE), _s
         for (size_t i = 0; i < s; i++)
             data.statical[i] = val;
     } else {
-        auto tmp = new uint32_t [s];
+        auto tmp = new uint32_t[s];
         for (size_t i = 0; i < s; i++)
             tmp[i] = val;
         new (&data.dynamical) dynamic(s, tmp);
@@ -60,12 +60,14 @@ uint32_t const& bit_vector::operator[](size_t index) const {
 }
 
 uint32_t & bit_vector::operator[](size_t index) {
-    delete_ref();
+    if (is_dynamic && !data.dynamical.pointer.unique())
+        delete_ref();
     return begin()[index];
 }
 
 void bit_vector::push_back(uint32_t element) {
-    delete_ref();
+    if (is_dynamic && !data.dynamical.pointer.unique())
+        delete_ref();
     if (is_dynamic) {
         ensure_capacity();
         begin()[_size] = element;
@@ -85,14 +87,16 @@ void bit_vector::push_back(uint32_t element) {
 void bit_vector::pop_back() {
     if (empty())
         return;
-    delete_ref();
+    if (is_dynamic && !data.dynamical.pointer.unique())
+        delete_ref();
     _size--;
-    if (_size <= STATIC_SIZE)
+    if (!is_dynamic && _size <= STATIC_SIZE)
         make_statical();
 }
 
 uint32_t & bit_vector::back() {
-    delete_ref();
+    if (is_dynamic && !data.dynamical.pointer.unique())
+        delete_ref();
     return begin()[_size - 1];
 }
 
@@ -149,9 +153,7 @@ uint32_t * bit_vector::begin() const {
 }
 
 void bit_vector::delete_ref() {
-    if (is_dynamic && !data.dynamical.pointer.unique()) {
-        auto tmp = new uint32_t [data.dynamical.capacity];
-        std::copy(begin(), begin() + _size, tmp);
-        data.dynamical.pointer.reset(tmp, std::default_delete<uint32_t[]>());
-    }
+    auto tmp = new uint32_t [data.dynamical.capacity];
+    std::copy(begin(), begin() + _size, tmp);
+    data.dynamical.pointer.reset(tmp, std::default_delete<uint32_t[]>());
 }
