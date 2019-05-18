@@ -733,6 +733,5 @@ TEST(correctness, div_randomized)
         ASSERT_EQ(divident - quotient * divisor, residue);
         EXPECT_GE(residue, 0);
         EXPECT_LT(residue, divisor);
-        bool ffff;
     }
 }

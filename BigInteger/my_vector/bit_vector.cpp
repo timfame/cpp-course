@@ -49,10 +49,10 @@ bit_vector& bit_vector::operator=(bit_vector other) noexcept{
 void bit_vector::swap(bit_vector &other) {
     std::swap(_size, other._size);
     std::swap(is_dynamic, other.is_dynamic);
-    char *tmp[sizeof(data)];
-    mempcpy(tmp, &data, sizeof(data));
-    mempcpy(&data, &other.data, sizeof(data));
-    mempcpy(&other.data, tmp, sizeof(data));
+    char tmp[sizeof(data)];
+    memcpy(tmp, &data, sizeof(data));//заменить, оператор [] быстрее должен быть
+    memcpy(&data, &other.data, sizeof(data));
+    memcpy(&other.data, tmp, sizeof(data));
 }
 
 uint32_t const& bit_vector::operator[](size_t index) const {
