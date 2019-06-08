@@ -6,8 +6,7 @@
 
 
 reader::reader(std::string const &file) : stream(file, std::ifstream::binary), index(0), count(0) {
-    if (stream.fail()) {
-        stream.close();
+    if (!stream.is_open()) {
         throw std::runtime_error("Input file not found");
     }
     get_buffer();
@@ -21,12 +20,14 @@ bool reader::has_char() {
     if (index < count) {
         return true;
     }
+    if (stream.eof()) {
+        return false;
+    }
     get_buffer();
-    return !stream.eof() || count != 0;
+    return count != 0;
 }
 
-uint8_t reader::get_char()
- {
+uint8_t reader::get_char() {
     if (index >= count) {
         if (!has_char()) {
             throw std::runtime_error("There is no more data");

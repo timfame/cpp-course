@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
                 f1.archive();
             }
             {
-                file_dearchiver f2(path + argv[3], path + "res");
+                file_dearchiver f2(path + argv[3], path + argv[2]);
                 f2.dearchive();
             }
         }

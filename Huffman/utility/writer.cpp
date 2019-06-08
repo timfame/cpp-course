@@ -5,8 +5,7 @@
 #include "writer.h"
 
 writer::writer(std::string const &file) : stream(file, std::ofstream::binary), index(0) {
-    if (stream.fail()) {
-        stream.close();
+    if (!stream.is_open()) {
         throw std::runtime_error("Output file not found");
     }
 }
