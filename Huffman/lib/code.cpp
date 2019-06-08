@@ -4,16 +4,16 @@
 
 #include "code.h"
 
-code::code() : buff(0), size(0), start(0), not_first(false){}
+code::code() : buff(0), size(0), start(0), not_first(false), was_push(false){}
 
-code::code(std::string const& s) : buff(0), size(0), start(0), not_first(false){
+code::code(std::string const& s) : buff(0), size(0), start(0), not_first(false), was_push(false){
     uint32_t len = s.size();
     for (uint32_t i = 0; i < len; ++i) {
         add_char(s[i]);
     }
 }
 
-code::code(code const &s) : str(s.str), buff(s.buff), size(s.size), start(s.start), not_first(s.not_first){}
+code::code(code const &s) : str(s.str), buff(s.buff), size(s.size), start(s.start), not_first(s.not_first), was_push(s.was_push){}
 
 void code::set_index(uint32_t index) {
     start = index;
