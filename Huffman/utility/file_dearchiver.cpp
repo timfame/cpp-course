@@ -2,6 +2,7 @@
 // Created by timfame on 03.06.19.
 //
 
+#include <iostream>
 #include "file_dearchiver.h"
 #include "../lib/code.h"
 #include "../lib/dearchiver.h"
@@ -38,7 +39,6 @@ void file_dearchiver::dearchive() {
     uint32_t cnt = 0;
     std::vector<uint8_t> to_unzip;
     while (read.has_char()) {
-        cnt++;
         if (cnt == BLOCK_SIZE) {
             for (uint8_t c : dearc.dearchive(to_unzip)) {
                 write.put(c);
@@ -47,6 +47,7 @@ void file_dearchiver::dearchive() {
             to_unzip.resize(0);
             cnt = 0;
         }
+        cnt++;
         to_unzip.push_back(read.get_char());
     }
     if (dearc.bad_eof()) {

@@ -7,6 +7,7 @@
 #include "../utility/file_dearchiver.h"
 #include <random>
 #include <functional>
+#include <algorithm>
 
 const static std::string path = "test/";
 std::string type = ".txt";

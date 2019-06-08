@@ -18,15 +18,19 @@ reader::~reader() {
 }
 
 bool reader::has_char() {
-    return index < count || !stream.eof();
+    if (index < count) {
+        return true;
+    }
+    get_buffer();
+    return !stream.eof() || count != 0;
 }
 
-uint8_t reader::get_char() {
+uint8_t reader::get_char()
+ {
     if (index >= count) {
-        if (stream.eof()) {
+        if (!has_char()) {
             throw std::runtime_error("There is no more data");
         }
-        get_buffer();
     }
     index++;
     return buffer[index - 1];

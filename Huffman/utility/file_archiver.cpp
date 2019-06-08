@@ -2,6 +2,7 @@
 // Created by timfame on 01.06.19.
 //
 
+#include <iostream>
 #include "file_archiver.h"
 #include "../lib/archiver.h"
 #include "../lib/code.h"
@@ -23,6 +24,7 @@ void file_archiver::archive() {
     arc.archive();
     code cur(arc.get_info());
     while (read_zip.has_char()) {
+        uint8_t  ccc = read_zip.get_char();
         uint32_t cnt_chars = cur.get_size() / 8;
         if (cur.get_size() % 8) {
             ++cnt_chars;
@@ -37,7 +39,7 @@ void file_archiver::archive() {
             }
             cur.clear();
         }
-        arc.add_code(cur, read_zip.get_char());
+        arc.add_code(cur, ccc);
     }
     for (uint8_t c : cur.get_str()) {
         write_zip.put(c);
