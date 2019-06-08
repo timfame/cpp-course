@@ -27,13 +27,16 @@ struct code {
     void force_push();
 
     const std::vector<uint8_t > &get_str();
+    uint8_t if_cut();
 
 private:
     std::vector<uint8_t > str;
+    uint8_t buff;
     uint32_t size;
     uint32_t start;
-    uint8_t buff;
     bool not_first;
+    uint8_t was_cut;
+    bool was_push;
 };
 
 

@@ -16,7 +16,7 @@ struct dearchiver {
 
     dearchiver(code const& info_code, uint32_t tree_info, uint32_t text_info);
 
-    std::string dearchive(std::string const& s);
+    std::string dearchive(std::vector <uint8_t> const& s);
 
     bool bad_eof() const;
 

@@ -39,10 +39,12 @@ info(info_code), tree_size(tree_info), text_size(text_info), cnt_unzip(0){
     }
 }
 
-std::string dearchiver::dearchive(std::string const &s) {
+std::string dearchiver::dearchive(std::vector<uint8_t> const &s) {
     std::string res;
     std::vector<bool> c(last);
-    code source(s);
+    code source = code();
+    for (uint8_t i : s)
+        source.add_char(i);
     while (source.has_bit()) {
         c.push_back(source.next_bit());
         if (zip.find(c) != zip.end()) {

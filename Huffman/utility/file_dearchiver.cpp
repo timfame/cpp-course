@@ -28,20 +28,24 @@ void file_dearchiver::dearchive() {
     if (tree_size % 8 != 0) {
         cur.add_char(read.get_char());
     }
-    for (size_t i = 0; i < keys_size; ++i) {
-        cur.add_char(read.get_char());
+    if (text_size != 0 || tree_size != 0) {
+        for (size_t i = 0; i < keys_size; ++i) {
+            cur.add_char(read.get_char());
+        }
     }
     cur.force_push();
     dearchiver dearc(cur, tree_size, text_size);
     uint32_t cnt = 0;
-    std::string to_unzip;
+    std::vector<uint8_t> to_unzip;
     while (read.has_char()) {
         cnt++;
         if (cnt == BLOCK_SIZE) {
             for (uint8_t c : dearc.dearchive(to_unzip)) {
                 write.put(c);
             }
-            to_unzip = "";
+            to_unzip.clear();
+            to_unzip.resize(0);
+            cnt = 0;
         }
         to_unzip.push_back(read.get_char());
     }

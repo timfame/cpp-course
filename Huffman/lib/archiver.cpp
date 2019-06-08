@@ -29,8 +29,8 @@ void archiever::archive() {
     std::string res;
     code cur = code();
 
-    size_t n = tree.size();
-    size_t index = BIT_SIZE - 1;
+    uint32_t n = tree.size();
+    uint32_t index = BIT_SIZE - 1;
     while (n > 0) {
         size_of_tree[index] = n % 2;
         index--;
@@ -40,12 +40,14 @@ void archiever::archive() {
         cur.add_bit(i);
     }
 
-    n = keys.size() - 1;
-    index = 7;
-    while (n > 0) {
-        size_of_keys[index] = n % 2;
-        index--;
-        n >>= 1;
+    if (!keys.empty()) {
+        n = keys.size() - 1;
+        index = 7;
+        while (n > 0) {
+            size_of_keys[index] = n % 2;
+            index--;
+            n >>= 1;
+        }
     }
     for (auto i : size_of_keys) {
         cur.add_bit(i);

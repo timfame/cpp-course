@@ -4,14 +4,16 @@
 
 #include "code.h"
 
-code::code() : size(0), buff(0), start(0), not_first(false){}
+code::code() : buff(0), size(0), start(0), not_first(false){}
 
-code::code(std::string const& s) : size(s.size() * 8), buff(0), start(0), not_first(false){
-    for (uint8_t i : s)
-        str.push_back(i);
+code::code(std::string const& s) : buff(0), size(0), start(0), not_first(false){
+    uint32_t len = s.size();
+    for (uint32_t i = 0; i < len; ++i) {
+        add_char(s[i]);
+    }
 }
 
-code::code(code const &s) : size(s.size), buff(s.buff), start(s.start), str(s.str), not_first(s.not_first){}
+code::code(code const &s) : str(s.str), buff(s.buff), size(s.size), start(s.start), not_first(s.not_first){}
 
 void code::set_index(uint32_t index) {
     start = index;
@@ -22,10 +24,16 @@ void code::add_bit(uint8_t c) {
     buff <<= 1;
     buff += c;
     ++size;
+    if (size % 8 == 0) {
+        was_push = false;
+    }
     not_first = true;
 }
 
 uint8_t code::next_bit() {
+    if (size % 8 == 0 && !was_push) {
+        force_push();
+    }
     uint8_t res = (str[start / 8] >> (7 - (start % 8))) & 1;
     start++;
     return res;
@@ -60,10 +68,13 @@ const std::vector<uint8_t> &code::get_str() {
 }
 
 void code::clear() {
+    buff = was_cut ? str.back() : 0;
+    buff >>= was_cut;
+    size = (8 - was_cut) % 8;
     str.resize(0);
-    size = 0;
-    buff = 0;
-    start = 0;
+    start = size;
+    not_first = size != 0;
+    was_cut = 0;
 }
 
 uint32_t code::get_size() const {
@@ -73,15 +84,26 @@ uint32_t code::get_size() const {
 void code::cut() {
     if (size % 8 != 0) {
         buff <<= 8 - size % 8;
+        was_cut = 8 - size % 8;
+        size = size / 8 * 8 + 8;
         str.push_back(buff);
         buff = 0;
-        size = size / 8 * 8 + 8;
+    } else {
+        if (!was_push) {
+            force_push();
+        }
+        was_cut = 0;
     }
+}
+
+uint8_t code::if_cut() {
+    return was_cut;
 }
 
 void code::force_push() {
     if (size % 8 == 0 && not_first) {
         str.push_back(buff);
         buff = 0;
+        was_push = true;
     }
 }

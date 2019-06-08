@@ -22,12 +22,18 @@ void file_archiver::archive() {
     arc.add_buffer(buff);
     arc.archive();
     code cur(arc.get_info());
-    uint32_t cnt = arc.get_info().size();
     while (read_zip.has_char()) {
-        ++cnt;
-        if (cnt == BLOCK_SIZE) {
-            for (uint8_t c : cur.get_str()) {
-                write_zip.put(c);
+        uint32_t cnt_chars = cur.get_size() / 8;
+        if (cur.get_size() % 8) {
+            ++cnt_chars;
+        }
+        if (cnt_chars >= BLOCK_SIZE) {
+            std::vector<uint8_t> to_write = cur.get_str();
+            for (uint32_t i = 0; i < to_write.size(); ++i) {
+                if (i == to_write.size() - 1 && cur.if_cut() > 0) {
+                    break;
+                }
+                write_zip.put(to_write[i]);
             }
             cur.clear();
         }

@@ -24,5 +24,4 @@ private:
     const static uint32_t BLOCK_SIZE = 1 << 20;
 };
 
-
 #endif //HUFFMAN_FILE_ARCHIVER_H
