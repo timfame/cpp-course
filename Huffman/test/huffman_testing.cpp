@@ -8,7 +8,7 @@
 #include <random>
 #include <functional>
 
-const static std::string path = "/home/timfame/cpp-course/Huffman/test/";
+const static std::string path = "test/";
 std::string type = ".txt";
 std::string name;
 
@@ -104,30 +104,65 @@ void generate_file(uint32_t size, uint8_t c) {
     }
 }
 
-TEST(random_tests, small_random_test_1KB) {
+TEST(random_tests, random_test_1B) {
     name = "random_test";
     type = ".txt";
+    generate_file(1);
+    check();
+}
+
+TEST(random_tests, random_test_10B) {
+    generate_file(10);
+    check();
+}
+
+TEST(random_tests, random_test_100B) {
+    generate_file(100);
+    check();
+}
+
+TEST(random_tests, random_test_500B) {
+    generate_file(500);
+    check();
+}
+
+TEST(random_tests, random_test_1KB) {
     generate_file(SMALL_SIZE);
     check();
 }
 
-TEST(random_tests, medium_random_test_1MB) {
+TEST(random_tests, random_test_10KB) {
+    generate_file(SMALL_SIZE * 10);
+    check();
+}
+
+TEST(random_tests, random_test_100KB) {
+    generate_file(SMALL_SIZE * 100);
+    check();
+}
+
+TEST(random_tests, random_test_500KB) {
+    generate_file(SMALL_SIZE * 500);
+    check();
+}
+
+TEST(random_tests, random_test_1MB) {
     generate_file(MEDIUM_SIZE);
     check();
 }
 
-TEST(random_tests, big_random_test_32MB) {
+TEST(random_tests, random_test_32MB) {
     generate_file(BIG_SIZE);
     check();
 }
-TEST(random_tests, small_tests_1000_times) {
+TEST(random_tests, tests_1KB_1000_times) {
     for (size_t i = 0; i < 1000; ++i) {
         generate_file(SMALL_SIZE);
         check();
     }
 }
 
-TEST(random_tests, medium_tests_10_times) {
+TEST(random_tests, tests_1MB_10_times) {
     for (size_t i = 0; i < 10; ++i) {
         generate_file(MEDIUM_SIZE);
         check();
@@ -141,6 +176,31 @@ TEST(random_tests, random_size_10_times) {
         generate_file(get_rand());
         check();
     }
+}
+
+TEST(random_tests, random_fibonacci_test) {
+    uint32_t sz[25];
+    sz[0] = 1, sz[1] = 1;
+    uint32_t size = 2;
+    for (size_t i = 2; i < 25; ++i) {
+        sz[i] = sz[i - 1] + sz[i - 2];
+        size += sz[i];
+    }
+    std::mt19937 my_rand(time(nullptr));
+    auto get_rand = std::bind(std::uniform_int_distribution<uint32_t>(0, 1 << 20), my_rand);
+    std::vector<uint8_t> text;
+    for (uint32_t i : sz) {
+        uint8_t c = get_rand();
+        for (uint32_t j = 0; j < i; ++j) {
+            text.push_back(c);
+        }
+    }
+    std::random_shuffle(text.begin(), text.end());
+    writer w(get_in());
+    for (uint8_t c : text) {
+        w.put(c);
+    }
+    check();
 }
 
 TEST(exception_tests, wrong_compressed_test) {

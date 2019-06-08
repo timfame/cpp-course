@@ -21,7 +21,7 @@ private:
     reader read_count, read_zip;
     writer write_zip;
 
-    const static uint32_t BLOCK_SIZE = 1 << 20;
+    const static uint32_t BLOCK_SIZE = 1 << 10;
 };
 
 #endif //HUFFMAN_FILE_ARCHIVER_H

@@ -7,7 +7,7 @@
 #include "file_archiver.h"
 #include "file_dearchiver.h"
 
-const std::string path = "/home/timfame/cpp-course/Huffman/utility/";
+const std::string path = "utility/";
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {

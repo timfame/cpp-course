@@ -22,7 +22,7 @@ private:
     reader read;
     writer write;
 
-    const static uint32_t BLOCK_SIZE = 1 << 20;
+    const static uint32_t BLOCK_SIZE = 1 << 10;
     const static size_t BYTE_SIZE = 4;
 };
 
