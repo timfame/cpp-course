@@ -73,8 +73,8 @@ void code::clear() {
     size = (8 - was_cut) % 8;
     str.resize(0);
     start = size;
-    not_first = size != 0;
     was_cut = 0;
+    not_first = size != 0;
 }
 
 uint32_t code::get_size() const {
