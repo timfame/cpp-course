@@ -231,7 +231,7 @@ TEST(correctness, const_subscript)
         EXPECT_EQ(42, cc[5]);
     });
 }
-/*
+
 TEST(correctness, insert)
 {
     faulty_run([]
@@ -391,7 +391,7 @@ TEST(correctness, erase_range_all)
         EXPECT_TRUE(c.empty());
     });
 }
-*/
+
 TEST(correctness, reserve)
 {
     faulty_run([]
@@ -495,7 +495,7 @@ TEST(correctness, const_front_back_ref)
         EXPECT_EQ(&c.back(), &cc[2]);
     });
 }
-/*
+
 TEST(correctness, push_back_element_of_itself)
 {
     faulty_run([]
@@ -510,7 +510,7 @@ TEST(correctness, push_back_element_of_itself)
         for (size_t i = 0; i != 22; ++i)
             EXPECT_EQ((int)i % 2, c[i]);
     });
-}*/
+}
 
 
 TEST(correctness, push_back_element_of_itself_single)
@@ -527,7 +527,7 @@ TEST(correctness, push_back_element_of_itself_single)
         for (size_t i = 0; i != c.size(); ++i)
             EXPECT_EQ(42, c[i]);
     });
-}/*
+}
 
 TEST(correctness, insert_element_of_itself_1)
 {
@@ -585,7 +585,7 @@ TEST(correctness, insert_element_of_itself_single)
         for (size_t i = 0; i != 2; ++i)
             EXPECT_EQ(42, c[i]);
     });
-}*/
+}
 
 TEST(exceptions, nothrow_default_ctor)
 {
@@ -770,7 +770,7 @@ TEST(my_tests, swap_small_big) {
        });
 }
 
-TEST(my_test, swap_big_big) {
+TEST(my_tests, swap_big_big) {
     faulty_run([]
        {
            container c;
@@ -793,5 +793,25 @@ TEST(my_test, swap_big_big) {
                EXPECT_EQ(i, d[i - 1]);
            for (int i = 5; i >= 0; --i)
                EXPECT_EQ(i, c[5 - i]);
+       });
+}
+
+TEST(my_tests, some_operations) {
+    faulty_run([]
+       {
+           container c;
+           container d;
+           for (int i = 5; i >= 0; --i)
+               c.push_back(i);
+           for (int i = 1; i < 8; i++)
+               d.push_back(i);
+           container e = d;
+           swap(e, d);
+           d.push_back(111);
+           swap(c, d);
+           container f = e;
+           e.clear();
+           f.pop_back();
+           swap(e, f);
        });
 }
