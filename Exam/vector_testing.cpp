@@ -512,7 +512,6 @@ TEST(correctness, push_back_element_of_itself)
     });
 }
 
-
 TEST(correctness, push_back_element_of_itself_single)
 {
     faulty_run([]

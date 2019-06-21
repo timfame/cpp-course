@@ -35,15 +35,44 @@ GTEST_API_ int main(int argc, char **argv) {
   printf("Running main() from gtest_main.cc\n");
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
-}
-/*
+}/*
 #include "../my_vector/vector.h"
 #include "../counted.h"
 
+template <class T>
+struct vec {
+    vec() : ptr(::operator new(3 * sizeof(size_t) + 10 * sizeof(T))) {
+        *(size_t*)ptr = 1;
+        *(size_t*)(ptr + 1) = 2;
+        *(size_t*)(ptr + 2) = 3;
+        *(T*)((size_t*)(ptr + 3)) = T();
+        *(T*)((size_t*)(ptr + 3) + 1) = T();
+    }
+
+    ~vec() {
+        ::operator delete(ptr);
+    }
+
+
+
+private:
+    void* ptr;
+};
+
+struct tmp {
+    tmp() {
+        ptr = new char[5];
+        ptr[0] = 'a';
+        ptr[3] = 'c';
+        ptr[4] = 'd';
+    }
+private:
+    char* ptr;
+};
+
 int main() {
-    counted a[1] = {0};
-    counted b[1] = {1};
-    std::swap(a, b);
-    std::cout << a[0] << " " << b[0];
+    vec<tmp> v();
+
     return 0;
-}*/
+}
+*/
