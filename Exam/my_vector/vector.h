@@ -9,6 +9,7 @@
 #include <utility>
 #include <cstdint>
 #include <memory>
+#include <iostream>
 
 template <class T>
 struct vector {
@@ -133,7 +134,13 @@ struct vector {
             other.inc_refs();
             _data.dynamical.ptr = other._data.dynamical.ptr;
         } else {
-            new (&_data.statical) T(other._data.statical[0]);
+            if (size() > 0) {
+                try {
+                    new(&_data.statical) T(other._data.statical[0]);
+                } catch (...) {
+                    throw;
+                }
+            }
         }
     };
 
@@ -156,21 +163,30 @@ struct vector {
         if (this == &other)
             return *this;
         if (other.is_dynamic()) {
-            if (is_dynamic())
-                delete_dynamic();
-            else
+            if (is_dynamic()) {
+                try {
+                    delete_dynamic();
+                } catch (...) {
+                    throw;
+                }
+            } else
                 if (size() > 0)
                     _data.statical[0].~T();
             other.inc_refs();
             _data.dynamical.ptr = other._data.dynamical.ptr;
             set_dynamic();
         } else {
-            if (is_dynamic())
-                delete_dynamic();
-            else
+            if (is_dynamic()) {
+                try {
+                    delete_dynamic();
+                } catch (...) {
+                    throw;
+                }
+            } else
                 if (size() > 0)
                     _data.statical[0].~T();
-            new (&_data.statical) T(other._data.statical[0]);
+            if (other.size() > 0)
+                new (&_data.statical) T(other._data.statical[0]);
             set_static();
         }
         set_size(other.size());
@@ -212,20 +228,61 @@ struct vector {
     }
 
     void push_back(T const& element) {
-        delete_ref();
-        T tmp(element);
-        if (is_dynamic()) {
-            ensure_capacity(tmp);
-            //new (data() + size()) T(tmp);
-        } else {
-            if (empty()) {
-                new (&_data.statical) T(tmp);
-            } else {
-                make_dynamical();
-                new (data() + size()) T(tmp);
-            }
+        if (!is_dynamic() && empty()) {
+            new (&_data.statical) T(element);
+            inc_size();
+            return;
         }
-        inc_size();
+        T tmp(element);
+        if (is_dynamic() && size() < capacity()) {
+            try {
+                new (data() + size()) T(tmp);
+            } catch (...) {
+                throw;
+            }
+            inc_size();
+            return;
+        }
+        if (!is_dynamic()) {
+            //return new_data;
+            void* new_data = nullptr;
+            try {
+                new_data = make_dynamical_copy();
+            } catch (...) {
+                throw;
+            }
+            try {
+                new (((T*)((size_t*)(new_data) + 3)) + 1) T(tmp);
+            } catch (...) {
+                delete_pointer(new_data);
+                throw;
+            }
+            ++*((size_t*)(new_data));
+            _data.statical[0].~T();
+            set_dynamic();
+            _data.dynamical.ptr = new_data;
+        } else {
+            void* new_data = nullptr;
+            try {
+                new_data = increase_capacity();
+            } catch (...) {
+                throw;
+            }
+            try {
+                new (((T*)((size_t*)(new_data) + 3)) + size()) T(tmp);
+            } catch (...) {
+                delete_pointer(new_data);
+                throw;
+            }
+            ++*((size_t*)(new_data));
+            try {
+                delete_dynamic();
+            } catch (...) {
+                delete_pointer(new_data);
+                throw;
+            }
+            _data.dynamical.ptr = new_data;
+        }
     }
 
     void pop_back() {
@@ -233,9 +290,14 @@ struct vector {
             throw std::runtime_error("Pop from empty vector");
         }
         delete_ref();
-        if (is_dynamic() && size() <= 2)
-            make_statical();
+      //  if (is_dynamic() && size() <= 2)
+      //      make_statical();
+     //   else
+     //
+        if (is_dynamic())
+            data()[size() - 1].~T();
         dec_size();
+
     }
 
     T* data() const {
@@ -259,19 +321,19 @@ struct vector {
     }
 
     reverse_iterator rbegin() noexcept {
-        return reverse_iterator(begin());
-    }
-
-    reverse_iterator rend() noexcept {
         return reverse_iterator(end());
     }
 
+    reverse_iterator rend() noexcept {
+        return reverse_iterator(begin());
+    }
+
     const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(begin());
+        return const_reverse_iterator(end());
     }
 
     const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(end());
+        return const_reverse_iterator(begin());
     }
 
     bool empty() const noexcept {
@@ -288,11 +350,22 @@ struct vector {
         if (!is_dynamic() && n > 1) {
             make_dynamical();
         }
-        delete_ref();
-        new_dynamical(size(), n, get_refs());
+        void* new_data = nullptr;
+        try {
+            new_data = new_dynamical(size(), n, get_refs());
+        } catch (...) {
+            throw;
+        }
+        try {
+            delete_dynamic();
+        } catch (...) {
+            delete_pointer(new_data);
+            throw;
+        }
+        _data.dynamical.ptr = new_data;
     }
 
-    size_t capacity() const {
+    size_t capacity() const noexcept {
         return (is_dynamic() ? _data.dynamical.get_info(1) : 1);
     }
 
@@ -372,13 +445,13 @@ struct vector {
     }
 
     friend bool operator<(vector const& a, vector const& b) {
-        if (a.size() != b.size())
-            return a.size() < b.size();
-        for (size_t i = 0; i < a.size(); ++i) {
+        for (size_t i = 0; i < std::min(a.size(), b.size()); ++i) {
             if (a.data()[i] == b.data()[i])
                 continue;
             return a.data()[i] < b.data()[i];
         }
+        if (a.size() != b.size())
+            return a.size() < b.size();
         return false;
     }
 
@@ -425,6 +498,7 @@ private:
         dynamic() : ptr(nullptr) {};
 
         dynamic(size_t sz, size_t c, size_t r) : ptr(::operator new(3 * sizeof(size_t) + c * sizeof(T))) {
+          //  ptr = ::operator new(3 * sizeof(size_t) + c * sizeof(T));
             get_info(0) = sz;
             get_info(1) = c;
             get_info(2) = r;
@@ -432,20 +506,21 @@ private:
 
         explicit dynamic(dynamic const* other) : ptr(other->ptr) {}
 
+        dynamic(dynamic const& other) : ptr(nullptr) {
+            make_copy(other);
+        }
+
         dynamic& operator=(dynamic const& other) {
-            ptr = ::operator new(3 * sizeof(size_t) + other.get_info(1) * sizeof(T));
-            get_info(0) = other.get_info(0);
-            get_info(1) = other.get_info(1);
-            get_info(2) = other.get_info(2);
-            for (size_t i = 0; i < get_info(0); ++i)
-                new (begin() + i) T(other.begin()[i]);
+            make_copy(other);
             return *this;
         }
 
         ~dynamic() {
-            for (size_t i = 0; i < get_info(0); ++i)
-                begin()[i].~T();
-            ::operator delete(ptr);
+            if (ptr != nullptr) {
+                for (size_t i = 0; i < get_info(0); ++i)
+                    begin()[i].~T();
+                ::operator delete(ptr);
+            }
         }
 
         bool unique() const {
@@ -462,6 +537,45 @@ private:
 
         T* begin() const {
             return ((T*)((size_t*)(ptr) + 3));
+        }
+
+        void inc_size() {
+            ++get_info(0);
+        }
+
+        void copy_pointer(void  *&d) {
+            d = ::operator new(3 * sizeof(size_t) + get_info(1) * sizeof(T));
+            *((size_t*)(d)) = get_info(0);
+            *((size_t*)(d) + 1) = get_info(1);
+            *((size_t*)(d) + 2) = get_info(2);
+            for (size_t i = 0; i < get_info(0); ++i) {
+                try {
+                    new((T *) ((size_t *) (d) + 3) + i) T(begin()[i]);
+                } catch (...) {
+                    for (size_t j = 0; j < i; ++j)
+                        ((T *) ((size_t *) (d) + 3) + j)->~T();
+                    ::operator delete (d);
+                    throw;
+                }
+            }
+        }
+    private:
+
+        void make_copy(dynamic const& other) {
+            ptr = ::operator new(3 * sizeof(size_t) + other.get_info(1) * sizeof(T));
+            get_info(0) = other.get_info(0);
+            get_info(1) = other.get_info(1);
+            get_info(2) = other.get_info(2);
+            for (size_t i = 0; i < get_info(0); ++i) {
+                try {
+                    new(begin() + i) T(other.begin()[i]);
+                } catch (...) {
+                    for (size_t j = 0; j < i; ++j)
+                        begin()[j].~T();
+                    ::operator delete(ptr);
+                    throw;
+                }
+            }
         }
     };
     union some {
@@ -494,7 +608,7 @@ private:
 
     void inc_size() {
         if (is_dynamic())
-            ++_data.dynamical.get_info(0);
+            _data.dynamical.inc_size();
         else
             info = (size() + 1) << 1;
     }
@@ -520,10 +634,15 @@ private:
 
     friend void swap_ds(vector& a, vector& b) {
         if (b.size() > 0) {
-            T tmp(b._data.statical[0]);
+            void* tmp_ptr = a._data.dynamical.ptr;
+            try {
+                new(&a._data.statical) T(b._data.statical[0]);
+            } catch (...) {
+                a._data.dynamical.ptr = tmp_ptr;
+                throw;
+            }
             b._data.statical[0].~T();
-            b._data.dynamical.ptr = a._data.dynamical.ptr;
-            new (&a._data.statical) T(tmp);
+            b._data.dynamical.ptr = tmp_ptr;
         } else
             b._data.dynamical.ptr = a._data.dynamical.ptr;
         a.set_static();
@@ -542,66 +661,139 @@ private:
         }
     }
 
-    void new_dynamical(size_t n, size_t cap, size_t ref) {
+    void* new_dynamical(size_t n, size_t cap, size_t ref) {
         dynamic tmp(n, cap, ref);
-        for (size_t i = 0; i < n; ++i)
-            new (tmp.begin() + i) T(data()[i]);
-        delete_dynamic();
-        _data.dynamical = tmp;
-    }
-
-    void make_dynamical() {
-        try {
-            dynamic tmp(size(), 4, 1);
-            if (size() > 0) {
-                new(tmp.begin()) T(_data.statical[0]);
-                _data.statical[0].~T();
+        for (size_t i = 0; i < n; ++i) {
+            try {
+                new(tmp.begin() + i) T(data()[i]);
+            } catch (...) {
+                for (size_t j = 0; j < i; ++j)
+                    tmp.begin()[j].~T();
+                ::operator delete (tmp.ptr);
+                tmp.ptr = nullptr;
+                throw;
             }
-            _data.dynamical = tmp;
+        }
+        void* new_data = nullptr;
+        try {
+            tmp.copy_pointer(new_data);
         } catch (...) {
             throw;
         }
+        return new_data;
+    }
+
+
+
+    void* make_dynamical_copy() {
+        dynamic tmp(0, 4, 1);
+        if (size() > 0) {
+            try {
+                new (tmp.begin()) T(_data.statical[0]);
+            } catch (...) {
+                throw;
+            }
+            tmp.inc_size();
+        }
+        void* new_data = nullptr;
+        try {
+            tmp.copy_pointer(new_data);
+        } catch (...) {
+            throw;
+        }
+        return new_data;
+    }
+
+    void make_dynamical() {
+        auto new_data = make_dynamical_copy();
+        if (size() > 0)
+            _data.statical[0].~T();
+        _data.dynamical.ptr = new_data;
         set_dynamic();
+    }
+
+    void* make_dynamical(T const& element) {
+        auto new_data = make_dynamical_copy();
+        try {
+            new (((T*)((size_t*)(new_data) + 3)) + 1) T(element);
+        } catch (...) {
+            delete_pointer(new_data);
+            throw;
+        }
+        ++*((size_t*)(new_data));
+        return new_data;
     }
 
     void make_statical() {
         T elem(*data());
         size_t sz = size();
-        delete_dynamic();
-        new (&_data.statical) T(elem);
+        try {
+            delete_dynamic();
+        } catch (...) {
+            throw;
+        }
+        new(&_data.statical) T(elem);
         set_static();
         set_size(sz);
     }
 
-    void ensure_capacity(T const& element) {
+    void* increase_capacity() {
         size_t new_size = size() + 1;
-        if (new_size >= capacity()) {
-            //new_dynamical(size(), new_size * 2, get_refs());
+        dynamic tmp(size(), new_size * 2, get_refs());
+        for (size_t i = 0; i < size(); ++i) {
             try {
-                dynamic tmp(size(), new_size * 2, get_refs());
-                for (size_t i = 0; i < size(); ++i)
-                    new(tmp.begin() + i) T(data()[i]);
-                new(tmp.begin() + size()) T(element);
-                _data.dynamical = tmp;
-            } catch(...) {
+                new(tmp.begin() + i) T(data()[i]);
+            } catch (...) {
+                for (size_t j = 0; j < i; ++j)
+                    tmp.begin()[j].~T();
+                ::operator delete (tmp.ptr);
+                tmp.ptr = nullptr;
                 throw;
             }
         }
+        void* new_data = nullptr;
+        try {
+            tmp.copy_pointer(new_data);
+        } catch (...) {
+            throw;
+        }
+        return new_data;
     }
 
     void delete_ref() {
         if (is_dynamic() && !_data.dynamical.unique()) {
             dynamic tmp(size(), capacity(), 1);
-            for (size_t i = 0; i < size(); ++i)
-                new (tmp.begin() + i) T(data()[i]);
+            for (size_t i = 0; i < size(); ++i) {
+                try {
+                    new (tmp.begin() + i) T(data()[i]);
+                } catch (...) {
+                    for (size_t j = 0; j < i; ++j)
+                        tmp.begin()[j].~T();
+                    ::operator delete (tmp.ptr);
+                    tmp.ptr = nullptr;
+                    throw;
+                }
+            }
+            void* new_data = nullptr;
+            try {
+                tmp.copy_pointer(new_data);
+            } catch (...) {
+                throw;
+            }
             dec_refs();
-            _data.dynamical = tmp;
+            _data.dynamical.ptr = new_data;
         }
     }
 
     void delete_dynamic() {
         delete_ref();
         _data.dynamical.~dynamic();
+    }
+
+    void delete_pointer(void *& p) {
+        for (size_t i = 0; i < *((size_t*)(p)); ++i)
+            (((T*)((size_t*)(p) + 3)) + i)->~T();
+        ::operator delete (p);
     }
 };
 
