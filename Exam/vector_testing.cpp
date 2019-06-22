@@ -1017,3 +1017,84 @@ TEST(exceptions, reserve)
         });
     });
 }
+
+TEST(my_tests, resize_1)
+{
+    faulty_run([]
+       {
+           container c;
+           for (int i = 1; i < 10; ++i)
+               c.push_back(i);
+           c.resize(5, 0);
+           c.resize(8, 100);
+           c.resize(10, 0);
+           EXPECT_EQ(1, c[0]);
+           EXPECT_EQ(2, c[1]);
+           EXPECT_EQ(3, c[2]);
+           EXPECT_EQ(4, c[3]);
+           EXPECT_EQ(5, c[4]);
+           EXPECT_EQ(100, c[5]);
+           EXPECT_EQ(100, c[6]);
+           EXPECT_EQ(100, c[7]);
+           EXPECT_EQ(0, c[8]);
+           EXPECT_EQ(0, c[9]);
+       });
+}
+
+TEST(my_tests, resize_2)
+{
+    faulty_run([]
+       {
+           container c;
+           for (int i = 1; i < 4; ++i)
+               c.push_back(i);
+           c.resize(5, 0);
+           EXPECT_EQ(3, c[2]);
+           EXPECT_EQ(1, c[0]);
+           c.resize(1, 5);
+           EXPECT_EQ(1u, c.size());
+           EXPECT_EQ(1, c[0]);
+           c.resize(5, 0);
+           c.resize(0, 0);
+       });
+}
+
+TEST(my_tests, clear) {
+    faulty_run([]
+       {
+           container c;
+           for (int i = 1; i < 10; ++i)
+               c.push_back(i);
+           c.resize(5, 0);
+           c.resize(8, 100);
+           c.resize(10, 0);
+           EXPECT_EQ(10u, c.size());
+           EXPECT_EQ(5, c[4]);
+           EXPECT_EQ(100, c[5]);
+           EXPECT_EQ(0, c[8]);
+           c.clear();
+           EXPECT_EQ(0u, c.size());
+           c.push_back(1);
+           EXPECT_EQ(1, c[0]);
+       });
+}
+
+TEST(my_tests, some_operations) {
+    faulty_run([]
+       {
+           container c;
+           container d;
+           for (int i = 5; i >= 0; --i)
+               c.push_back(i);
+           for (int i = 1; i < 8; i++)
+               d.push_back(i);
+           container e = d;
+           swap(e, d);
+           d.push_back(111);
+           swap(c, d);
+           container f = e;
+           e.clear();
+           f.pop_back();
+           swap(e, f);
+       });
+}
