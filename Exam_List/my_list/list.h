@@ -194,9 +194,6 @@ public:
 
     iterator erase(const_iterator pos) {
         BaseNode* ptr = pos.ptr;
-        if (ptr == _back) {
-            throw std::runtime_error("Out of bound erase");
-        }
         ptr->left->right = ptr->right;
         ptr->right->left = ptr->left;
         BaseNode* ret = ptr->right;
@@ -302,13 +299,11 @@ void list<T>::pop_back() noexcept {
 
 template <class T>
 T& list<T>::back() {
-    assert(!empty());
     return static_cast<Node *>(_back->left)->value;
 }
 
 template <class T>
 T const& list<T>::back() const {
-    assert(!empty());
     return static_cast<Node *>(_back->left)->value;
 }
 
@@ -324,13 +319,11 @@ void list<T>::pop_front() noexcept {
 
 template <class T>
 T& list<T>::front() {
-    assert(!empty());
     return static_cast<Node *>(_back->right)->value;
 }
 
 template <class T>
 T const& list<T>::front() const {
-    assert(!empty());
     return static_cast<Node *>(_back->right)->value;
 }
 
