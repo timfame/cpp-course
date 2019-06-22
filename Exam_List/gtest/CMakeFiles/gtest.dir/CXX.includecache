@@ -177,6 +177,8 @@ stdio.h
 -
 gtest/gtest.h
 -
+my_list/list.h
+/home/timfame/cpp-course/Exam_List/gtest/my_list/list.h
 
 gtest/gtest.h
 limits
@@ -302,5 +304,9 @@ vector
 iosfwd
 -
 vector
+-
+
+my_list/list.h
+iterator
 -
 

@@ -178,7 +178,7 @@ TEST(correctness, iterator_deref_2)
     magic(*j.operator->());
     expect_eq(c, {1, 2, 3, 42, 5, 6});
 }
-/*
+
 TEST(correctness, iterator_deref_2c)
 {
     counted::no_new_instances_guard g;
@@ -194,7 +194,7 @@ TEST(correctness, iterator_deref_2c)
     magic(*j.operator->());
     expect_eq(c, {1, 2, 3, 42, 5, 6});
 }
-*/
+
 TEST(correctness, iterator_constness)
 {
     container c;
@@ -203,7 +203,7 @@ TEST(correctness, iterator_constness)
     magic(*std::prev(as_const(c).end()));
     expect_eq(c, {1, 2, 3});
 }
-/*
+
 TEST(correctness, reverse_iterator_constness)
 {
     container c;
@@ -212,7 +212,7 @@ TEST(correctness, reverse_iterator_constness)
     magic(*std::prev(as_const(c).rend()));
     expect_eq(c, {1, 2, 3});
 }
-*/
+
 TEST(correctness, push_back)
 {
     counted::no_new_instances_guard g;
@@ -520,7 +520,7 @@ TEST(correctness, erase_iterators)
     EXPECT_EQ(2, *i4);
     EXPECT_EQ(4, *i2);
 }
-/*
+
 TEST(correctness, erase_end_whole)
 {
     counted::no_new_instances_guard g;
@@ -530,7 +530,7 @@ TEST(correctness, erase_end_whole)
     c.erase(c.begin(), c.end());
     EXPECT_TRUE(c.empty());
     EXPECT_EQ(c.begin(), c.end());
-}*/
+}
 
 TEST(correctness, erase_return_value)
 {
@@ -543,7 +543,7 @@ TEST(correctness, erase_return_value)
     i = c.erase(i);
     EXPECT_EQ(4, *i);
 }
-/*
+
 TEST(correctness, erase_range_return_value)
 {
     counted::no_new_instances_guard g;
@@ -888,12 +888,12 @@ TEST(correctness, clear_empty)
     EXPECT_TRUE(c.empty());
     c.clear();
     EXPECT_TRUE(c.empty());
-}*/
-    
+}
+
 TEST(correctness, clear)
 {
     counted::no_new_instances_guard g;
-    
+
     container c;
     mass_push_back(c, {1, 2, 3, 4});
     c.clear();
@@ -907,7 +907,7 @@ TEST(fault_injection, push_back)
 {
     faulty_run([] {
         counted::no_new_instances_guard g;
-    
+
         container c;
         mass_push_back(c, {1, 2, 3, 4});
     });
@@ -917,7 +917,7 @@ TEST(fault_injection, assignment_operator)
 {
     faulty_run([] {
         counted::no_new_instances_guard g;
-    
+
         container c;
         mass_push_back(c, {1, 2, 3, 4});
         container c2;

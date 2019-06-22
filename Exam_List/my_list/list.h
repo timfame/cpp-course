@@ -6,6 +6,7 @@
 #define EXAM_LIST_LIST_H
 
 #include <iterator>
+#include <cassert>
 
 template <class T>
 struct list {
@@ -29,9 +30,7 @@ private:
 
         //Node(Node* other) : BaseNode(other->left, other->right), value(other->value) {}
 
-        ~Node() {
-            value.~T();
-        }
+        ~Node() = default;
     };
 
     BaseNode _back_pointer;
@@ -41,24 +40,24 @@ public:
 
     template <class L>
     struct LIterator : std::iterator<std::bidirectional_iterator_tag, L> {
-         friend list;
-         friend BaseNode;
+        friend list;
+        friend BaseNode;
 
-         LIterator() : ptr(nullptr) {}
+        LIterator() : ptr(nullptr) {}
 
-         ~LIterator() = default;
+        ~LIterator() = default;
 
-         template <class Another>
-         LIterator(Another* p) : ptr(p) {}
+        template <class Another>
+        LIterator(Another* p) : ptr(p) {}
 
-         template <class Another>
-         LIterator(LIterator<Another> const& other) : ptr(other.ptr) {}
+        template <class Another>
+        LIterator(LIterator<Another> const& other) : ptr(other.ptr) {}
 
-         template <class Another>
-         LIterator& operator=(LIterator<Another> const& other) {
-             ptr = other.ptr;
-             return *this;
-         }
+        template <class Another>
+        LIterator& operator=(LIterator<Another> const& other) {
+            ptr = other.ptr;
+            return *this;
+        }
 
         template <class Another>
         bool operator==(LIterator<Another> const& b) const {
@@ -70,12 +69,16 @@ public:
             return ptr != b.ptr;
         }
 
-        L const& operator*() const {
+        L& operator*() const {
             return (static_cast<Node *>(const_cast<BaseNode*>(ptr))->value);
         }
 
         L& operator*() {
             return (static_cast<Node *>(const_cast<BaseNode*>(ptr))->value);
+        }
+
+        L* operator->() const {
+            return &(static_cast<Node *>(const_cast<BaseNode*>(ptr))->value);
         }
 
         L* operator->() {
@@ -108,6 +111,7 @@ public:
         BaseNode* ptr;
     };
 
+
     typedef BaseNode value_type;
     typedef LIterator<T> iterator;
     typedef LIterator<T const> const_iterator;
@@ -131,6 +135,22 @@ public:
     void pop_front() noexcept;
     T& front();
     T const& front() const;
+
+    friend void swap(list& a, list& b) noexcept {
+        std::swap(a._back_pointer, b._back_pointer);
+        if (a._back->right == b._back) {
+            a._back->left = &a._back_pointer;
+            a._back->right = &a._back_pointer;
+        }
+        if (b._back->right == a._back) {
+            b._back->left = &b._back_pointer;
+            b._back->right = &b._back_pointer;
+        }
+        a._back->left->right = &a._back_pointer;
+        a._back->right->left = &a._back_pointer;
+        b._back->left->right = &b._back_pointer;
+        b._back->right->left = &b._back_pointer;
+    }
 
     iterator begin() noexcept {
         return iterator(_back->right);
@@ -174,14 +194,46 @@ public:
 
     iterator erase(const_iterator pos) {
         BaseNode* ptr = pos.ptr;
-     //   if (ptr == _back) {
-     //       throw std::runtime_error("Out of bound erase");
-     //   }
+        if (ptr == _back) {
+            throw std::runtime_error("Out of bound erase");
+        }
         ptr->left->right = ptr->right;
         ptr->right->left = ptr->left;
         BaseNode* ret = ptr->right;
         delete (static_cast<Node *>(ptr));
         return iterator(ret);
+    }
+
+    iterator erase(const_iterator first, const_iterator last) {
+        BaseNode* left = first.ptr;
+        BaseNode* right = last.ptr;
+        left = left->left;
+        auto next_it = first;
+        for (auto it = first; it != last;) {
+            ++next_it;
+            delete (static_cast<Node *>(it.ptr));
+            it = next_it;
+        }
+        left->right = right;
+        right->left = left;
+        return iterator(right);
+    }
+
+    void splice(const_iterator pos, list& other, const_iterator first, const_iterator last) {
+        if (first == last)
+            return;
+        BaseNode* p1 = pos.ptr->left;
+        BaseNode* p2 = pos.ptr;
+        BaseNode* i1 = first.ptr;
+        BaseNode* i2 = last.ptr->left;
+        BaseNode* other_p1 = i1->left;
+        BaseNode* other_p2 = last.ptr;
+        p1->right = i1;
+        i1->left = p1;
+        i2->right = p2;
+        p2->left = i2;
+        other_p1->right = other_p2; // delete from other
+        other_p2->left = other_p1;
     }
 
 };
@@ -196,19 +248,27 @@ template <class T>
 list<T>::list(list const &other) : list() {
     auto tmp = other._back->right;
     while (tmp != other._back) {
-        push_back(static_cast<Node *>(tmp)->value);
+        try {
+            push_back(static_cast<Node *>(tmp)->value);
+        } catch (...) {
+            clear();
+        }
         tmp = tmp->right;
     }
 }
 
 template <class T>
 list<T>& list<T>::operator=(list const &other) {
-    clear();
+    if (this == &other)
+        return *this;
+    list<T> buff;
     auto tmp = other._back->right;
     while (tmp != other._back) {
-        push_back(static_cast<Node *>(tmp)->value);
+        buff.push_back(static_cast<Node *>(tmp)->value);
         tmp = tmp->right;
     }
+    clear();
+    swap(*this, buff);
     return *this;
 }
 
@@ -230,20 +290,11 @@ bool list<T>::empty() const noexcept {
 
 template <class T>
 void list<T>::push_back(const T &element) {
-  //  auto new_node = new Node(_back->left, _back, element);
-  //  _back->left->right = new_node;
-  //  _back->left = new_node;
-  const_iterator it = end();
-  --it;
-  insert(it, element);
+  insert(end(), element);
 }
 
 template <class T>
 void list<T>::pop_back() noexcept {
-    /*Node* deleted_node = static_cast<Node *>(_back->left);
-    _back->left->left->right = _back;
-    _back->left = _back->left->left;
-    delete (deleted_node);*/
     iterator it = end();
     --it;
     erase(it);
@@ -251,37 +302,35 @@ void list<T>::pop_back() noexcept {
 
 template <class T>
 T& list<T>::back() {
+    assert(!empty());
     return static_cast<Node *>(_back->left)->value;
 }
 
 template <class T>
 T const& list<T>::back() const {
+    assert(!empty());
     return static_cast<Node *>(_back->left)->value;
 }
 
 template <class T>
 void list<T>::push_front(const T &element) {
-    auto new_node = new Node(_back, _back->right, element);
-    _back->right->left = new_node;
-    _back->right = new_node;
+    insert(begin(), element);
 }
 
 template <class T>
 void list<T>::pop_front() noexcept {
-    /*Node* deleted_node = static_cast<Node *>(_back->right);
-    _back->right->right->left = nullptr;
-    _back->right = _back->right->right;
-    delete (deleted_node);*/
     erase(begin());
 }
 
 template <class T>
 T& list<T>::front() {
+    assert(!empty());
     return static_cast<Node *>(_back->right)->value;
 }
 
 template <class T>
 T const& list<T>::front() const {
+    assert(!empty());
     return static_cast<Node *>(_back->right)->value;
 }
 

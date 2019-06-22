@@ -6,4 +6,5 @@ gtest/CMakeFiles/gtest.dir/gtest-all.cc.o: gtest/gtest.h
 
 gtest/CMakeFiles/gtest.dir/gtest_main.cc.o: gtest/gtest_main.cc
 gtest/CMakeFiles/gtest.dir/gtest_main.cc.o: gtest/gtest.h
+gtest/CMakeFiles/gtest.dir/gtest_main.cc.o: my_list/list.h
 
