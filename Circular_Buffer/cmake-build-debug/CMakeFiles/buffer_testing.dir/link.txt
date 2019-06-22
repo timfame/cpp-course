@@ -1,1 +1,0 @@
-/usr/bin/c++   -Wall -std=c++11 -pedantic -g -fsanitize=address,undefined -D_GLIBCXX_DEBUG  -rdynamic CMakeFiles/buffer_testing.dir/counted.cpp.o CMakeFiles/buffer_testing.dir/fault_injection.cpp.o CMakeFiles/buffer_testing.dir/buffer_testing.cpp.o CMakeFiles/buffer_testing.dir/gtest/gtest-all.cc.o CMakeFiles/buffer_testing.dir/gtest/gtest_main.cc.o  -o buffer_testing -lpthread 
