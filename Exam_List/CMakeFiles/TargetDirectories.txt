@@ -1,0 +1,7 @@
+/home/timfame/cpp-course/Exam_List/CMakeFiles/rebuild_cache.dir
+/home/timfame/cpp-course/Exam_List/CMakeFiles/edit_cache.dir
+/home/timfame/cpp-course/Exam_List/CMakeFiles/counted.dir
+/home/timfame/cpp-course/Exam_List/CMakeFiles/list.dir
+/home/timfame/cpp-course/Exam_List/gtest/CMakeFiles/rebuild_cache.dir
+/home/timfame/cpp-course/Exam_List/gtest/CMakeFiles/gtest.dir
+/home/timfame/cpp-course/Exam_List/gtest/CMakeFiles/edit_cache.dir

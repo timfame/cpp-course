@@ -45,9 +45,9 @@ struct vector {
             return ptr != b.ptr;
         }
 
-        V const& operator*() const {
-            return *ptr;
-        }
+     //   V const& operator*() const {
+     //       return *ptr;
+     //   }
 
         V& operator*() {
             return *ptr;
@@ -223,7 +223,14 @@ struct vector {
         }
         T tmp(element);
         if (is_dynamic() && size() < capacity()) {
-            new (data() + size()) T(tmp);
+            delete_ref();
+            new(data() + size()) T(tmp);
+           // try {
+           //     delete_ref(true);
+          //  } catch (...) {
+          //      data()[size()].~T();
+          //      throw;
+          //  }
             inc_size();
             return;
         }
@@ -275,10 +282,12 @@ struct vector {
     }
 
     iterator begin() noexcept {
+        delete_ref();
         return iterator(data());
     }
 
     iterator end() noexcept  {
+        delete_ref();
         return iterator(data() + size());
     }
 
@@ -291,10 +300,12 @@ struct vector {
     }
 
     reverse_iterator rbegin() noexcept {
+        delete_ref();
         return reverse_iterator(end());
     }
 
     reverse_iterator rend() noexcept {
+        delete_ref();
         return reverse_iterator(begin());
     }
 
@@ -317,11 +328,11 @@ struct vector {
     void reserve(size_t n) {
         if (is_dynamic() && n < size())
             return;
-        if (!is_dynamic() && n > 1) {
+        if (!is_dynamic()) {
             make_dynamical();
         }
         void* new_data = nullptr;
-        new_data = new_dynamical(size(), n, get_refs());
+        new_data = new_dynamical(size(), n, 1);
         try {
             delete_dynamic();
         } catch (...) {
@@ -479,7 +490,8 @@ private:
 
         dynamic() : ptr(nullptr) {};
 
-        dynamic(size_t sz, size_t c, size_t r) : ptr(::operator new(3 * sizeof(size_t) + c * sizeof(T))) {
+        dynamic(size_t sz, size_t c, size_t r) {
+            ptr = ::operator new(3 * sizeof(size_t) + c * sizeof(T));
             get_info(0) = sz;
             get_info(1) = c;
             get_info(2) = r;
