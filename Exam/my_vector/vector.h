@@ -368,10 +368,7 @@ struct vector {
                try {
                    new(tmp.begin() + i) T(data()[i]);
                } catch (...) {
-                   for (size_t j = 0; j < i; ++j)
-                       tmp.begin()[j].~T();
-                   ::operator delete (tmp.ptr);
-                   tmp.ptr = nullptr;
+                   partial_destroy(tmp, i);
                    throw;
                }
            }
@@ -379,10 +376,7 @@ struct vector {
                try {
                    new(tmp.begin() + i) T(val);
                } catch (...) {
-                   for (size_t j = 0; j < i; ++j)
-                       tmp.begin()[j].~T();
-                   ::operator delete (tmp.ptr);
-                   tmp.ptr = nullptr;
+                   partial_destroy(tmp, i);
                    throw;
                }
            }
@@ -549,20 +543,7 @@ private:
     private:
 
         void make_copy(dynamic const& other) {
-            ptr = ::operator new(3 * sizeof(size_t) + other.get_info(1) * sizeof(T));
-            get_info(0) = other.get_info(0);
-            get_info(1) = other.get_info(1);
-            get_info(2) = other.get_info(2);
-            for (size_t i = 0; i < get_info(0); ++i) {
-                try {
-                    new(begin() + i) T(other.begin()[i]);
-                } catch (...) {
-                    for (size_t j = 0; j < i; ++j)
-                        begin()[j].~T();
-                    ::operator delete(ptr);
-                    throw;
-                }
-            }
+            other.copy_pointer(ptr);
         }
     };
     union some {
@@ -654,10 +635,7 @@ private:
             try {
                 new(tmp.begin() + i) T(data()[i]);
             } catch (...) {
-                for (size_t j = 0; j < i; ++j)
-                    tmp.begin()[j].~T();
-                ::operator delete (tmp.ptr);
-                tmp.ptr = nullptr;
+                partial_destroy(tmp, i);
                 throw;
             }
         }
@@ -721,6 +699,13 @@ private:
 
     T* get(void* ptr, size_t index) {
         return ((T*)((size_t*)(ptr) + 3) + index);
+    }
+
+    void partial_destroy(dynamic & tmp, size_t index) {
+        for (size_t i = 0; i < index; ++i)
+            tmp.begin()[i].~T();
+        ::operator delete (tmp.ptr);
+        tmp.ptr = nullptr;
     }
 };
 
