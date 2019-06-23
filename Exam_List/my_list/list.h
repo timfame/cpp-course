@@ -19,16 +19,12 @@ private:
         BaseNode() : left(nullptr), right(nullptr) {}
 
         BaseNode(BaseNode* l, BaseNode* r) : left(l), right(r) {}
-
-        //    BaseNode(BaseNode* other) : left(other->left), right(other->right) {}
     };
 
     struct Node : BaseNode {
         T value;
 
         Node(BaseNode* l, BaseNode* r, T _value) : BaseNode(l, r), value(_value) {}
-
-        //Node(Node* other) : BaseNode(other->left, other->right), value(other->value) {}
 
         ~Node() = default;
     };
@@ -70,19 +66,19 @@ public:
         }
 
         L& operator*() const {
-            return (static_cast<Node *>(const_cast<BaseNode*>(ptr))->value);
+            return (static_cast<Node *>(ptr)->value);
         }
 
         L& operator*() {
-            return (static_cast<Node *>(const_cast<BaseNode*>(ptr))->value);
+            return (static_cast<Node *>(ptr)->value);
         }
 
         L* operator->() const {
-            return &(static_cast<Node *>(const_cast<BaseNode*>(ptr))->value);
+            return &(static_cast<Node *>(ptr)->value);
         }
 
         L* operator->() {
-            return &(static_cast<Node *>(const_cast<BaseNode*>(ptr))->value);
+            return &(static_cast<Node *>(ptr)->value);
         }
 
         LIterator& operator++() {
@@ -110,7 +106,6 @@ public:
     private:
         BaseNode* ptr;
     };
-
 
     typedef BaseNode value_type;
     typedef LIterator<T> iterator;
@@ -249,6 +244,7 @@ list<T>::list(list const &other) : list() {
             push_back(static_cast<Node *>(tmp)->value);
         } catch (...) {
             clear();
+            throw;
         }
         tmp = tmp->right;
     }
